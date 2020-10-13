@@ -1,0 +1,137 @@
+* {
+  box-sizing: border-box;
+  background-color: whitesmoke;
+}
+
+#grid {
+  /*   border: 1px solid black; */
+}
+
+.score-container {
+  padding-top: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  font-size: 20px;
+}
+
+.central-message {
+  padding: 10px;
+  display: none;
+  position: absolute;
+  height: 120px;
+  width: 300px;
+  z-index: 1;
+  top: 32vh;
+  left: 50vw;
+  transform: translateX(-150px);
+  background-color: rgba(0, 0, 0, 0.5);
+  font-size: 20px;
+  color: white;
+  text-align: center;
+  line-height: 30px;
+}
+
+.column {
+  display: flex;
+  border: 1px solid black;
+  border-radius: 5px;
+  height: 50px;
+  font-size: 30px;
+  align-items: center;
+  justify-content: center;
+  line-height: 45px;
+  cursor: pointer;
+}
+
+.human {
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: blueviolet;
+}
+
+.human.masked {
+  color: green;
+}
+
+.human.infected {
+  color: red;
+}
+
+.virus {
+  color: red;
+}
+
+.empty {
+  color: blue;
+}
+
+.column:hover {
+  transform: scale(1.1);
+  z-index: 1;
+}
+
+.over {
+  border: 3px solid yellow;
+}
+
+.score-container span {
+  color: red;
+}
+
+.imune {
+  color: green;
+}
+
+.rotate {
+  animation-name: rotate;
+  animation-iteration-count: infinite;
+  animation-duration: 5s;
+  animation-timing-function: linear;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.blob {
+  animation-name: blob;
+  animation-iteration-count: 1;
+  animation-duration: 0.3s;
+  animation-timing-function: linear;
+}
+
+@keyframes blob {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.2);
+  }
+}
+
+.transcend {
+  animation-name: transcend;
+  animation-iteration-count: infinite;
+  animation-duration: 2s;
+  animation-timing-function: linear;
+}
+
+@keyframes transcend {
+  0% {
+    color: green;
+  }
+  50% {
+    color: #55ab55;
+  }
+  100% {
+    color: green;
+  }
+}
