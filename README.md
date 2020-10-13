@@ -1,0 +1,2 @@
+# coviDead
+just a game
