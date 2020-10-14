@@ -30,6 +30,7 @@ function startBTN() {
 
 function nextTurn() {
   turnBtn.addEventListener("click", () => {
+    startBTN();
     checkGameStatus();
     if (gameOn) {
       /*       turnBtn.innerText = "Next Turn"; */
@@ -43,7 +44,6 @@ function nextTurn() {
       count();
       addMasked(1);
       killInfected(5, 10);
-      startBTN();
     }
   });
 }
@@ -107,7 +107,6 @@ function infectedSpreadField() {
 }
 
 function infectInfectedSpreadField() {
-  console.log(infectedSpreadField());
   infectedSpreadField().forEach((coords) => {
     infect(pickCell(...coords), 50);
   });
@@ -197,15 +196,17 @@ function deleteImune() {
 
 function killInfected(deathturns, percentage) {
   died = 0;
-  getNodes("infected").forEach((infected) => {
-    if (turns % deathturns === 0) {
-      let rand = Math.floor(Math.random() * 100);
-      if (rand < percentage) {
-        createEmpty(infected);
-        died++;
+  getNodes("infected")
+    .reverse()
+    .forEach((infected) => {
+      if (turns % deathturns === 0) {
+        let rand = Math.floor(Math.random() * 100);
+        if (rand < percentage) {
+          createEmpty(infected);
+          died++;
+        }
       }
-    }
-  });
+    });
   deadDisplay.innerText = died;
 }
 
