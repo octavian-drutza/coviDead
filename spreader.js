@@ -6,6 +6,7 @@ import {
   createMasked,
   createImune,
 } from "./cellCreators.js";
+import { addDragEventListeners } from "./eventListeners.js";
 
 let turnBtn = document.querySelector(".next-turn");
 let turnsDisplay = document.querySelector(".turns");
@@ -30,10 +31,7 @@ function startBTN() {
 
 function nextTurn() {
   turnBtn.addEventListener("click", () => {
-    startBTN();
-    checkGameStatus();
-    if (gameOn) {
-      /*       turnBtn.innerText = "Next Turn"; */
+    if (checkGameStatus()) {
       turns++;
       if (turns > 1) {
         infectInfectedSpreadField();
@@ -44,6 +42,8 @@ function nextTurn() {
       count();
       addMasked(1);
       killInfected(5, 10);
+      addDragEventListeners();
+      startBTN();
     }
   });
 }
@@ -211,7 +211,7 @@ function killInfected(deathturns, percentage) {
 }
 
 function addMasked(maskturns) {
-  if (turns % maskturns === 0) {
+  if (turns % maskturns === 0 && getNodes("unmasked")[0]) {
     createMasked(getNodes("unmasked")[0]);
   }
 }
@@ -240,6 +240,7 @@ function checkGameStatus() {
       getNodes("masked").length + getNodes("unmasked").length - 1
     } humans!`;
   }
+  return gameOn;
 }
 
-export { nextTurn, imune, deleteImune, gameOn };
+export { nextTurn, imune, deleteImune, turns, gameOn };

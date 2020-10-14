@@ -43,7 +43,6 @@ function cleanHover(elem) {
 
 function dragDrop() {
   cleanHover(this);
-
   if (
     this.childNodes[0].title != "virus" &&
     initialEl.childNodes[0].title != "virus" &&

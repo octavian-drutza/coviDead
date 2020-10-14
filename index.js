@@ -6,7 +6,7 @@ import {
   placeMaskedCells,
 } from "./cellCreators.js";
 import { addDragEventListeners } from "./eventListeners.js";
-import { imune, nextTurn, gameOn } from "./spreader.js";
+import { imune, nextTurn } from "./spreader.js";
 
 let columns = 12,
   rows = 12,
@@ -25,7 +25,6 @@ function init() {
   placeEmptyCells(emptyQty);
   placeMaskedCells(maskedQty);
   placeHumanCells(getEmptyNodes());
-  addDragEventListeners();
   imune();
   nextTurn();
 }
