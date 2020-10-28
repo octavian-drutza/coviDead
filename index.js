@@ -7,7 +7,7 @@ import {
   globalMap,
 } from "./cellCreators.js";
 import { nextTurn } from "./spreader.js";
-import { automationStart } from "./simulation.js";
+/* import { automationStart } from "./simulation.js"; */
 
 let columns = 12,
   rows = 12,
@@ -27,7 +27,7 @@ function init() {
   reserveHumanCells(globalMap);
   nextTurn();
   renderMap(globalMap);
-  automationStart();
+  /* automationStart(); */
 }
 
 function restart() {

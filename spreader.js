@@ -9,6 +9,7 @@ import {
   getType,
 } from "./cellCreators.js";
 import { addDragEventListeners } from "./eventListeners.js";
+import { automationStart, automationStop } from "./simulation.js";
 
 let turnBtn = document.getElementById("next-turn");
 let turnsDisplay = document.querySelector(".turns");
@@ -54,6 +55,8 @@ function nextTurn() {
         );
         deleteVirus(globalMap);
       }
+      automationStop();
+      automationStart();
       startBTN();
       addDragEventListeners();
       addMasked(maskRythm, globalMap);
@@ -61,6 +64,7 @@ function nextTurn() {
       renderMap(globalMap);
       count(globalMap);
       checkGameStatus(globalMap);
+
       /*       console.log("next turn:", globalMap); */
     }
   });
