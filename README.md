@@ -1,2 +1,2 @@
 # coviDead
-just a game
+vanilla JS, CSS, Bootstrap
