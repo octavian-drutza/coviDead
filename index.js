@@ -7,7 +7,7 @@ import {
   globalMap,
 } from "./cellCreators.js";
 import { nextTurn } from "./spreader.js";
-import { automationStart } from "./automation.js";
+import { automationStart } from "./simulation.js";
 
 let columns = 12,
   rows = 12,
