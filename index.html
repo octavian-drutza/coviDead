@@ -9,12 +9,12 @@
     <title>Document</title>
   </head>
   <body>
-    <div class="central-message">asdfasdf</div>
+    <div class="central-message"></div>
     <div class="main">
       <div id="grid" class="container-fluid"></div>
     </div>
     <div class="score-container">
-      <button class="restart">Restart</button>
+      <button type="button" class="btn btn-info" id="restart">RESTART</button>
       <div id="turns">
         Turns:
         <span class="turns">0</span>
@@ -30,7 +30,21 @@
         Masked Humans: <span class="masked-info">0</span>
       </div>
       <div id="dead-info">Died this Turn: <span class="dead-info">0</span></div>
-      <button class="next-turn">Next Turn</button>
+      <button type="button" class="btn btn-info" id="next-turn">
+        NEXT TURN
+      </button>
+    </div>
+    <div class="auto">
+      <button type="button" class="btn btn-primary" id="automation">
+        GET DECISION
+      </button>
+      <button type="button" class="btn btn-primary" id="automation-see">
+        VIEW DECISION : OFF
+      </button>
+      <button type="button" class="btn btn-primary" id="automation-use">
+        USE DECISION
+      </button>
+      <span id="percentage">0</span>
     </div>
 
     <script type="module" src="index.js"></script>

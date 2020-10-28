@@ -1,14 +1,16 @@
-import { pickCell, getCellCoords, getNodes } from "./index.js";
 import {
   infect,
-  createEmpty,
-  createHuman,
-  createMasked,
-  createImune,
+  imune,
+  globalMap,
+  createHumanStrict,
+  createMaskedStrict,
+  createEmptyStrict,
+  renderMap,
+  getType,
 } from "./cellCreators.js";
 import { addDragEventListeners } from "./eventListeners.js";
 
-let turnBtn = document.querySelector(".next-turn");
+let turnBtn = document.getElementById("next-turn");
 let turnsDisplay = document.querySelector(".turns");
 let healthyDisplay = document.querySelector(".healthy-info");
 let infectedDisplay = document.querySelector(".infected-info");
@@ -20,44 +22,53 @@ let message = document.querySelector(".central-message");
 let turns = 0;
 let died = 0;
 let gameOn = true;
+const killRythm = 5;
+const killPerc = 20;
+const maskRythm = 3;
+const virusInfectChance = 50;
+const humanInfectChance = 25;
 
 startBTN();
 
 function startBTN() {
   turns == 0
-    ? (turnBtn.innerText = "Start")
-    : (turnBtn.innerText = "Next Turn");
+    ? (turnBtn.innerText = "START")
+    : (turnBtn.innerText = "NEXT TURN");
 }
 
 function nextTurn() {
   turnBtn.addEventListener("click", () => {
-    if (checkGameStatus()) {
+    if (checkGameStatus(globalMap)) {
       turns++;
       if (turns > 1) {
-        infectInfectedSpreadField();
+        infectInfectedSpreadField(
+          infectedSpreadField(globalMap),
+          humanInfectChance,
+          globalMap
+        );
       } else {
-        infectVirusSpreadField();
-        deleteVirus();
+        infectVirusSpreadField(
+          virusSpreadField(globalMap),
+          virusInfectChance,
+          globalMap
+        );
+        deleteVirus(globalMap);
       }
-      count();
-      addMasked(1);
-      killInfected(5, 10);
-      addDragEventListeners();
       startBTN();
+      addDragEventListeners();
+      addMasked(maskRythm, globalMap);
+      killInfected(killRythm, killPerc, globalMap);
+      renderMap(globalMap);
+      count(globalMap);
+      checkGameStatus(globalMap);
+      /*       console.log("next turn:", globalMap); */
     }
   });
 }
 
-function getVirusesCoords() {
-  let viruses = document.querySelectorAll(".virus");
-  return Array.from(viruses).reduce((acc, virus) => {
-    acc.push(getCellCoords(virus.parentNode));
-    return acc;
-  }, []);
-}
-
-function virusSpreadField() {
-  return getVirusesCoords().reduce((acc, cl) => {
+/* calculate the spread field of virus */
+function virusSpreadField(map) {
+  return map.virus.reduce((acc, cl) => {
     acc.push(
       [cl[0], cl[1] + 1],
       [cl[0], cl[1] - 1],
@@ -72,23 +83,17 @@ function virusSpreadField() {
   }, []);
 }
 
-function infectVirusSpreadField() {
-  virusSpreadField().forEach((coords) => {
-    infect(pickCell(...coords), 50);
+/* infect the virus spread field */
+function infectVirusSpreadField(field, perc, map) {
+  field.forEach((coords) => {
+    infect(perc, coords, map);
   });
 }
 
-function getInfectedCoords() {
-  let infected = document.querySelectorAll(".infected");
-  return Array.from(infected).reduce((acc, cell) => {
-    acc.push(getCellCoords(cell.parentNode));
-    return acc;
-  }, []);
-}
-
-function infectedSpreadField() {
+/* calculate the spread field of an infected human */
+function infectedSpreadField(map) {
   let field = [];
-  getInfectedCoords()
+  map.infected
     .reduce((acc, cl) => {
       acc.push(
         [cl[0], cl[1] + 1],
@@ -99,66 +104,54 @@ function infectedSpreadField() {
       return acc;
     }, [])
     .forEach((el) => {
-      if (el[0] != 0 && el[1] != 0 && el[0] != 13 && el[1] != 13) {
-        field.push(el);
-      }
+      el[0] == 0 ? (el[0] = 12) : el[0];
+      el[1] == 0 ? (el[1] = 12) : el[1];
+      el[0] == 13 ? (el[0] = 1) : el[0];
+      el[1] == 13 ? (el[1] = 1) : el[1];
+      field.push(el);
     });
   return eliminateDuplicates(field);
 }
 
-function infectInfectedSpreadField() {
-  infectedSpreadField().forEach((coords) => {
-    infect(pickCell(...coords), 50);
+/* infect the spread field of an infected human */
+function infectInfectedSpreadField(field, perc, map) {
+  field.forEach((coords) => {
+    infect(perc, coords, map);
   });
 }
 
-function checkSpreadFieldBlock() {
-  return infectedSpreadField().reduce((acc, coords) => {
-    if (pickCell(...coords).childNodes[0].title == "unmasked") {
-      acc.push(coords);
-    }
-    return acc;
-  }, []);
-}
-
-function getMaskedCoordinates() {
-  let masked = document.querySelectorAll(".masked");
-  return Array.from(masked).reduce((acc, cell) => {
-    acc.push(getCellCoords(cell.parentNode));
-    return acc;
-  }, []);
-}
-
-function immunityField() {
+/* calculate the imunity field of a masked human */
+function immunityField(map) {
   let imune = [];
-  getMaskedCoordinates().forEach((cl) => {
+  let masked = "masked";
+  map.masked.forEach((cl) => {
     if (cl[0] > 2 && cl[0] < 11) {
-      if (pickCell(cl[0] + 2, cl[1]).childNodes[0].title == "masked") {
+      if (getType([cl[0] + 2, cl[1]], map) == masked) {
         imune.push([cl[0] + 1, cl[1]]);
-      } else if (pickCell(cl[0] - 2, cl[1]).childNodes[0].title == "masked") {
+      } else if (getType([cl[0] - 2, cl[1]], map) == masked) {
         imune.push([cl[0] - 1, cl[1]]);
       }
     } else if (cl[0] <= 2) {
-      if (pickCell(cl[0] + 2, cl[1]).childNodes[0].title == "masked") {
+      if (getType([cl[0] + 2, cl[1]], map) == masked) {
         imune.push([cl[0] + 1, cl[1]]);
       }
     } else if (cl[0] >= 11) {
-      if (pickCell(cl[0] - 2, cl[1]).childNodes[0].title == "masked") {
+      if (getType([cl[0] - 2, cl[1]], map) == masked) {
         imune.push([cl[0] - 1, cl[1]]);
       }
     }
     if (cl[1] > 2 && cl[1] < 11) {
-      if (pickCell(cl[0], cl[1] + 2).childNodes[0].title == "masked") {
+      if (getType([cl[0], cl[1] + 2], map) == masked) {
         imune.push([cl[0], cl[1] + 1]);
-      } else if (pickCell(cl[0], cl[1] - 2).childNodes[0].title == "masked") {
+      } else if (getType([cl[0], cl[1] - 2]) == masked) {
         imune.push([cl[0], cl[1] - 1]);
       }
     } else if (cl[1] <= 2) {
-      if (pickCell(cl[0], cl[1] + 2).childNodes[0].title == "masked") {
+      if (getType([cl[0], cl[1] + 2], map) == masked) {
         imune.push([cl[0], cl[1] + 1]);
       }
     } else if (cl[1 >= 11]) {
-      if (pickCell(cl[0], cl[1] - 2).childNodes[0].title == "masked") {
+      if (getType([cl[0], cl[1] - 2], map) == masked) {
         imune.push([cl[0], cl[1] - 1]);
       }
     }
@@ -167,53 +160,53 @@ function immunityField() {
   return eliminateDuplicates(imune);
 }
 
-function imune() {
-  immunityField().forEach((coords) => {
-    createImune(pickCell(...coords));
+/* imune the imunity field of a masked human*/
+function imuneImunityField(field, map) {
+  field.forEach((coords) => {
+    imune(coords, map);
   });
 }
 
-function count() {
-  turnsDisplay.innerText = turns;
-  healthyDisplay.innerText = getNodes("unmasked").length;
-  infectedDisplay.innerText = getNodes("infected").length;
-  emptyDisplay.innerText = getNodes("empty").length;
-  maskedDisplay.innerText = getNodes("masked").length;
-}
-
-function deleteVirus() {
-  getNodes("virus").forEach((virus) => {
-    createHuman(virus);
+/* delete the virus coordinates from the map after first turn, add human coordinates to the map instead */
+function deleteVirus(map) {
+  map.virus.forEach((virusCoords) => {
+    createHumanStrict(virusCoords, map);
   });
+  map.virus = [];
+  map.occupied = eliminateDuplicates(map.occupied);
 }
 
-function deleteImune() {
-  let imune = document.querySelectorAll(".imune");
-  imune.forEach((cell) => {
-    createHuman(cell.parentNode);
+/* delete the imune human coordinates from the map (used in the drag and drop events), add human coordinates to the map instead */
+function deleteImune(map) {
+  map.imune.forEach((imuneCoords) => {
+    createHumanStrict(imuneCoords, map);
   });
+  map.imune = [];
+  map.occupied = eliminateDuplicates(map.occupied);
 }
 
-function killInfected(deathturns, percentage) {
+/* delete infected coordinates, add empty coordinates to the map instead */
+function killInfected(deathturns, percentage, map) {
   died = 0;
-  getNodes("infected")
-    .reverse()
-    .forEach((infected) => {
-      if (turns % deathturns === 0) {
-        let rand = Math.floor(Math.random() * 100);
-        if (rand < percentage) {
-          createEmpty(infected);
-          died++;
-        }
+  map.infected.reverse().forEach((infected, index) => {
+    if (turns % deathturns === 0) {
+      if (Math.floor(Math.random() * 100) < percentage) {
+        createEmptyStrict(infected, map);
+        map.infected.splice(index, 1);
+        died++;
       }
-    });
+    }
+  });
   deadDisplay.innerText = died;
 }
 
-function addMasked(maskturns) {
-  if (turns % maskturns === 0 && getNodes("unmasked")[0]) {
-    createMasked(getNodes("unmasked")[0]);
+/* add masked coordinates to the map, delete the human coordinates */
+function addMasked(maskturns, map) {
+  if (turns % maskturns === 0 && map.humans.length > 0) {
+    createMaskedStrict(map.humans[0], map);
+    map.humans.splice(0, 1);
   }
+  map.occupied = eliminateDuplicates(map.occupied);
 }
 
 function eliminateDuplicates(arrayToFilter) {
@@ -226,21 +219,45 @@ function eliminateDuplicates(arrayToFilter) {
   });
 }
 
-function checkGameStatus() {
-  if (getNodes("unmasked").length == 0) {
+function checkGameStatus(map) {
+  if (map.humans.length == 0) {
     gameOn = false;
     message.style.display = "inline";
-    message.innerText = `Game Over, You managed to save ${
-      getNodes("masked").length - 1
-    } humans!`;
-  } else if (turns > 1 && checkSpreadFieldBlock().length == 0) {
+    message.innerText = `Game Over, You managed to save ${map.masked.length} humans!`;
+  } else if (turns > 1 && checkSpreadFieldBlock(map).length == 0) {
     gameOn = false;
     message.style.display = "inline";
     message.innerText = `You managed to stop the spreading and saved ${
-      getNodes("masked").length + getNodes("unmasked").length - 1
+      map.masked.length + map.humans.length
     } humans!`;
   }
   return gameOn;
 }
 
-export { nextTurn, imune, deleteImune, turns, gameOn };
+function count(map) {
+  turnsDisplay.innerText = turns;
+  healthyDisplay.innerText = map.humans.length;
+  infectedDisplay.innerText = map.infected.length;
+  emptyDisplay.innerText = map.empty.length;
+  maskedDisplay.innerText = map.masked.length;
+}
+
+/* check if the virus spread field is blocked */
+function checkSpreadFieldBlock(map) {
+  return infectedSpreadField(map).reduce((acc, coords) => {
+    if (getType(coords, map) == "humans") {
+      acc.push(coords);
+    }
+    return acc;
+  }, []);
+}
+
+export {
+  nextTurn,
+  deleteImune,
+  imuneImunityField,
+  immunityField,
+  infectInfectedSpreadField,
+  infectedSpreadField,
+};
+export { turns, gameOn };

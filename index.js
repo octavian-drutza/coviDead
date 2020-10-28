@@ -1,32 +1,33 @@
 /* set up grid*/
 import {
-  placeEmptyCells,
-  placeHumanCells,
-  placeVirusCells,
-  placeMaskedCells,
+  reserveHumanCells,
+  reserveVirusCells,
+  reserveMaskedCells,
+  renderMap,
+  globalMap,
 } from "./cellCreators.js";
-import { addDragEventListeners } from "./eventListeners.js";
-import { imune, nextTurn } from "./spreader.js";
+import { nextTurn } from "./spreader.js";
+import { automationStart } from "./automation.js";
 
 let columns = 12,
   rows = 12,
   emptyQty = 0,
-  maskedQty = 3,
+  maskedQty = 2,
   virusQty = 1,
   grid = document.getElementById("grid"),
-  restartBtn = document.querySelector(".restart");
+  restartBtn = document.getElementById("restart");
 
 init();
 restart();
 
 function init() {
   createGrid(columns, rows);
-  placeVirusCells(virusQty);
-  placeEmptyCells(emptyQty);
-  placeMaskedCells(maskedQty);
-  placeHumanCells(getEmptyNodes());
-  imune();
+  reserveVirusCells(virusQty, globalMap);
+  reserveMaskedCells(maskedQty, globalMap);
+  reserveHumanCells(globalMap);
   nextTurn();
+  renderMap(globalMap);
+  automationStart();
 }
 
 function restart() {
@@ -43,7 +44,7 @@ function createGrid(columns, rows) {
     grid.appendChild(row);
     for (let n = 1; n <= columns; n++) {
       let column = document.createElement("div");
-      column.classList.add("column", "col-lg-1", "col-md-2");
+      column.classList.add("column", "col-lg-1", "col-md-1", "col-sm-1");
       column.id = `column-${n}`;
       row.appendChild(column);
     }
@@ -67,7 +68,7 @@ function checkVacancy(cell) {
   return false;
 }
 
-function getEmptyNodes() {
+/* function getEmptyNodes() {
   return Array.from(grid.childNodes).reduce((acc, node) => {
     node.childNodes.forEach((node) => {
       if (node.innerHTML == "") {
@@ -76,9 +77,9 @@ function getEmptyNodes() {
     });
     return acc;
   }, []);
-}
+} */
 
-function getNodes(title) {
+/* function getNodes(title) {
   return Array.from(grid.childNodes).reduce((acc, node) => {
     node.childNodes.forEach((node) => {
       if (node.childNodes[0].title == title) {
@@ -87,7 +88,16 @@ function getNodes(title) {
     });
     return acc;
   }, []);
-}
+} */
+
+/* function getAllNodes() {
+  return Array.from(grid.childNodes).reduce((acc, node) => {
+    node.childNodes.forEach((node) => {
+      acc.push(node);
+    });
+    return acc;
+  }, []);
+} */
 
 function getCellCoords(cell) {
   let colNr = parseInt(cell.id.substring(7, cell.id.length));
@@ -97,5 +107,15 @@ function getCellCoords(cell) {
   return [colNr, rowNr];
 }
 
-export { pickCell, getRandom, checkVacancy, getCellCoords, getNodes };
+function getAllCoords() {
+  let allCoords = [];
+  for (let i = 1; i <= columns; i++) {
+    for (let n = 1; n <= rows; n++) {
+      allCoords.push([i, n]);
+    }
+  }
+  return allCoords;
+}
+
+export { pickCell, getRandom, checkVacancy, getAllCoords, getCellCoords };
 export { columns, rows, emptyQty, maskedQty, virusQty };

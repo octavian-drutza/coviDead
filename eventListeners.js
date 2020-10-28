@@ -1,7 +1,14 @@
-import { getCellCoords } from "./index.js";
-import { imune, deleteImune } from "./spreader.js";
+import { getCellCoords, pickCell } from "./index.js";
+import { deleteImune, immunityField, imuneImunityField } from "./spreader.js";
+import {
+  globalMap,
+  getType,
+  getIndex,
+  createImune,
+  createHuman,
+} from "./cellCreators.js";
 
-let startCoords = [];
+let initialCoords = [];
 let initialEl;
 
 export function addDragEventListeners() {
@@ -18,10 +25,15 @@ export function addDragEventListeners() {
 }
 
 function dragstart() {
-  startCoords = getCellCoords(this);
+  initialCoords = getCellCoords(this);
   initialEl = this;
-  if (this.childNodes[0].title == "masked") {
-    deleteImune();
+  /* delete the imunes from the dom without rendering the map */
+  if (getType(initialCoords, globalMap) == "masked") {
+    globalMap.imune.forEach((imuneCoords) => {
+      createHuman(pickCell(...imuneCoords));
+    });
+    /* delete the imunes from the map */
+    deleteImune(globalMap);
   }
 }
 
@@ -42,17 +54,37 @@ function cleanHover(elem) {
 }
 
 function dragDrop() {
+  let thisCoords = getCellCoords(this);
   cleanHover(this);
   if (
-    this.childNodes[0].title != "virus" &&
-    initialEl.childNodes[0].title != "virus" &&
-    this.childNodes[0].title != "imune" &&
-    initialEl.childNodes[0].title != "imune"
+    getType(thisCoords, globalMap) != "virus" &&
+    getType(initialCoords, globalMap) != "virus" &&
+    getType(thisCoords, globalMap) != "imune" &&
+    getType(initialCoords, globalMap) != "imune" &&
+    getType(thisCoords, globalMap) != "empty" &&
+    getType(initialCoords, globalMap) != "empty"
   ) {
+    /* swap the cells in the dom */
     [this.innerHTML, initialEl.innerHTML] = [
       initialEl.innerHTML,
       this.innerHTML,
     ];
+    /* swap the cells on the map */
+    let initialType = getType(initialCoords, globalMap);
+    let thisType = getType(thisCoords, globalMap);
+    [
+      globalMap[initialType][getIndex(initialCoords, initialType, globalMap)],
+      globalMap[thisType][getIndex(thisCoords, thisType, globalMap)],
+    ] = [
+      globalMap[thisType][getIndex(thisCoords, thisType, globalMap)],
+      globalMap[initialType][getIndex(initialCoords, initialType, globalMap)],
+    ];
   }
-  imune();
+  console.log(globalMap);
+  /* reserve the imune coordinates on the map  */
+  imuneImunityField(immunityField(globalMap), globalMap);
+  /* create imunes directly in the dom without rerendering the map */
+  globalMap.imune.forEach((imuneCoords) => {
+    createImune(pickCell(...imuneCoords));
+  });
 }
