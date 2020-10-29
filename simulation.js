@@ -36,10 +36,10 @@ export function automationStart() {
         renderMap(config);
         first = false;
       } else {
-        automationStop();
         renderMap(globalMap);
+        automationSee.innerText = "VIEW SOLUTION : OFF";
+        automationSee.style.backgroundColor = "";
         first = true;
-        percentage.innerText = "Solution NOT Ready!";
       }
     }
   });
